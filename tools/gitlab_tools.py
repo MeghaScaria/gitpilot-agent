@@ -439,3 +439,65 @@ def search_issues(project_id: int, search_term: str) -> dict:
         ],
         "count": len(issues)
     }
+
+def create_issue_comment(project_id: int, issue_iid: int, comment: str) -> dict:
+    """
+    Post a comment on a GitLab issue, only if the same comment doesn't already exist.
+    Args:
+        project_id: The numeric GitLab project ID
+        issue_iid: The issue number shown in GitLab UI
+        comment: The comment text to post
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    issue = project.issues.get(issue_iid)
+
+    # Check for duplicate comments
+    existing_notes = issue.notes.list(get_all=True)
+    for note in existing_notes:
+        if note.body.strip() == comment.strip():
+            return {
+                "success": False,
+                "duplicate": True,
+                "message": f"This exact comment already exists on issue #{issue_iid}. Skipping."
+            }
+
+    note = issue.notes.create({"body": comment})
+    return {
+        "success": True,
+        "duplicate": False,
+        "issue_id": issue_iid,
+        "comment_id": note.id,
+        "comment": comment
+    }
+
+def create_mr_comment(project_id: int, mr_iid: int, comment: str) -> dict:
+    """
+    Post a comment on a GitLab MR, only if the same comment doesn't already exist.
+    Args:
+        project_id: The numeric GitLab project ID
+        mr_iid: The merge request IID shown in GitLab UI
+        comment: The comment text to post
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    mr = project.mergerequests.get(mr_iid)
+
+    # Check for duplicate comments
+    existing_notes = mr.notes.list(get_all=True)
+    for note in existing_notes:
+        if note.body.strip() == comment.strip():
+            return {
+                "success": False,
+                "duplicate": True,
+                "message": f"This exact comment already exists on MR #{mr_iid}. Skipping."
+            }
+
+    note = mr.notes.create({"body": comment})
+    return {
+        "success": True,
+        "duplicate": False,
+        "mr_id": mr_iid,
+        "comment_id": note.id,
+        "comment": comment
+    }
