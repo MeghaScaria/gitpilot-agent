@@ -188,3 +188,223 @@ def list_merge_requests(project_id: int, state: str = "opened") -> dict:
             for m in mrs
         ]
     }
+
+def get_pipeline_failure_diagnosis(project_id: int) -> dict:
+    """
+    Fetch the most recent failed pipeline, get its job logs,
+    and return structured data for diagnosis.
+    Args:
+        project_id: The numeric GitLab project ID
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    failed = project.pipelines.list(status="failed", per_page=1)
+    if not failed:
+        return {"message": "No failed pipelines found."}
+    pipeline = failed[0]
+    jobs = project.pipelines.get(pipeline.id).jobs.list(get_all=True)
+    job_logs = []
+    for job in jobs:
+        if job.status == "failed":
+            try:
+                log = project.jobs.get(job.id).trace()
+                log_text = log.decode("utf-8") if isinstance(log, bytes) else str(log)
+                job_logs.append({
+                    "job_name": job.name,
+                    "stage": job.stage,
+                    "log_tail": log_text[-3000:]
+                })
+            except Exception as e:
+                job_logs.append({
+                    "job_name": job.name,
+                    "stage": job.stage,
+                    "log_tail": f"Could not fetch log: {e}"
+                })
+    return {
+        "pipeline_id": pipeline.id,
+        "ref": pipeline.ref,
+        "created_at": pipeline.created_at,
+        "web_url": pipeline.web_url,
+        "failed_jobs": job_logs
+    }
+
+
+def generate_mr_description(project_id: int, mr_iid: int) -> dict:
+    """
+    Fetch the diff and metadata for a merge request to help
+    generate a professional MR description.
+    Args:
+        project_id: The numeric GitLab project ID
+        mr_iid: The merge request IID shown in GitLab UI
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    mr = project.mergerequests.get(mr_iid)
+    try:
+        changes = mr.changes()
+        diffs = changes.get("changes", [])
+        diff_summary = []
+        for d in diffs[:10]:  # Limit to first 10 files
+            diff_summary.append({
+                "file": d.get("new_path", ""),
+                "additions": d.get("diff", "").count("\n+"),
+                "deletions": d.get("diff", "").count("\n-"),
+                "diff_snippet": d.get("diff", "")[:800]
+            })
+    except Exception as e:
+        diff_summary = [{"error": str(e)}]
+    return {
+        "mr_id": mr.iid,
+        "title": mr.title,
+        "source_branch": mr.source_branch,
+        "target_branch": mr.target_branch,
+        "author": mr.author.get("username"),
+        "created_at": mr.created_at,
+        "existing_description": mr.description or "",
+        "file_changes": diff_summary
+    }
+
+
+def generate_sprint_retrospective(project_id: int) -> dict:
+    """
+    Gather recent project activity to generate a sprint retrospective.
+    Includes recently closed issues, merged MRs, failed pipelines, and open items.
+    Args:
+        project_id: The numeric GitLab project ID
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    closed_issues = project.issues.list(state="closed", per_page=10,
+                                         order_by="updated_at")
+    open_issues = project.issues.list(state="opened", get_all=True)
+    merged_mrs = project.mergerequests.list(state="merged", per_page=10,
+                                             order_by="updated_at")
+    open_mrs = project.mergerequests.list(state="opened", get_all=True)
+    pipelines = project.pipelines.list(per_page=10)
+    pipeline_summary = {
+        "total": len(pipelines),
+        "failed": len([p for p in pipelines if p.status == "failed"]),
+        "success": len([p for p in pipelines if p.status == "success"])
+    }
+    return {
+        "project_name": project.name,
+        "recently_closed_issues": [
+            {"id": i.iid, "title": i.title, "labels": i.labels}
+            for i in closed_issues
+        ],
+        "open_issues": [
+            {"id": i.iid, "title": i.title, "labels": i.labels}
+            for i in open_issues
+        ],
+        "merged_mrs": [
+            {"id": m.iid, "title": m.title, "author": m.author.get("username")}
+            for m in merged_mrs
+        ],
+        "open_mrs": [
+            {"id": m.iid, "title": m.title}
+            for m in open_mrs
+        ],
+        "pipeline_health": pipeline_summary
+    }
+
+def create_issue_comment(project_id: int, issue_iid: int, comment: str) -> dict:
+    """
+    Post a comment on a GitLab issue.
+    Args:
+        project_id: The numeric GitLab project ID
+        issue_iid: The issue number shown in GitLab UI
+        comment: The comment text to post
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    issue = project.issues.get(issue_iid)
+    note = issue.notes.create({"body": comment})
+    return {
+        "success": True,
+        "issue_id": issue_iid,
+        "comment_id": note.id,
+        "comment": comment
+    }
+
+
+def update_issue_labels(project_id: int, issue_iid: int, labels: list) -> dict:
+    """
+    Update the labels on a GitLab issue.
+    Args:
+        project_id: The numeric GitLab project ID
+        issue_iid: The issue number shown in GitLab UI
+        labels: List of label strings to apply e.g. ["bug", "high-priority"]
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    issue = project.issues.get(issue_iid)
+    issue.labels = labels
+    issue.save()
+    return {
+        "success": True,
+        "issue_id": issue_iid,
+        "labels_applied": labels
+    }
+
+
+def close_issue(project_id: int, issue_iid: int) -> dict:
+    """
+    Close a GitLab issue.
+    Args:
+        project_id: The numeric GitLab project ID
+        issue_iid: The issue number shown in GitLab UI
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    issue = project.issues.get(issue_iid)
+    issue.state_event = "close"
+    issue.save()
+    return {
+        "success": True,
+        "issue_id": issue_iid,
+        "message": f"Issue #{issue_iid} has been closed."
+    }
+
+
+def create_mr_comment(project_id: int, mr_iid: int, comment: str) -> dict:
+    """
+    Post a comment on a GitLab merge request.
+    Args:
+        project_id: The numeric GitLab project ID
+        mr_iid: The merge request IID shown in GitLab UI
+        comment: The comment text to post
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    mr = project.mergerequests.get(mr_iid)
+    note = mr.notes.create({"body": comment})
+    return {
+        "success": True,
+        "mr_id": mr_iid,
+        "comment_id": note.id,
+        "comment": comment
+    }
+def create_issue(project_id: int, title: str, description: str, labels: list = None) -> dict:
+    """
+    Create a new issue in a GitLab project.
+    Args:
+        project_id: The numeric GitLab project ID
+        title: The issue title
+        description: The issue description (markdown supported)
+        labels: Optional list of label strings e.g. ["bug", "pipeline-failure"]
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    payload = {
+        "title": title,
+        "description": description,
+        "labels": ",".join(labels) if labels else ""
+    }
+    issue = project.issues.create(payload)
+    return {
+        "success": True,
+        "issue_id": issue.iid,
+        "title": issue.title,
+        "url": issue.web_url,
+        "labels": labels or []
+    }

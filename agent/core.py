@@ -11,7 +11,15 @@ from tools.gitlab_tools import (
     list_pipelines,
     get_pipeline_jobs,
     get_project_summary,
-    list_merge_requests
+    list_merge_requests,
+    get_pipeline_failure_diagnosis,
+    generate_mr_description,
+    generate_sprint_retrospective,
+    create_issue_comment,
+    update_issue_labels,
+    close_issue,
+    create_mr_comment,
+    create_issue
 )
 
 load_dotenv()  # Works locally, ignored on Cloud Run
@@ -35,7 +43,15 @@ TOOL_FUNCTIONS = {
     "list_pipelines": list_pipelines,
     "get_pipeline_jobs": get_pipeline_jobs,
     "get_project_summary": get_project_summary,
-    "list_merge_requests": list_merge_requests
+    "list_merge_requests": list_merge_requests,
+    "get_pipeline_failure_diagnosis": get_pipeline_failure_diagnosis,
+    "generate_mr_description": generate_mr_description,
+    "generate_sprint_retrospective": generate_sprint_retrospective,
+    "create_issue_comment": create_issue_comment,
+    "update_issue_labels": update_issue_labels,
+    "close_issue": close_issue,
+    "create_mr_comment": create_mr_comment,
+    "create_issue": create_issue,
 }
 
 
@@ -71,7 +87,16 @@ def run_agent(user_message: str, chat_history: list = None) -> str:
                        get_issue_detail,
                        list_pipelines,
                        get_pipeline_jobs,
-                       get_project_summary],
+                       get_project_summary,
+                       list_merge_requests,
+                       get_pipeline_failure_diagnosis,
+                       generate_mr_description,
+                       generate_sprint_retrospective,
+                       create_issue_comment,
+                       update_issue_labels,
+                       close_issue,
+                       create_mr_comment,
+                       create_issue],
                 temperature=0.2
             )
         )

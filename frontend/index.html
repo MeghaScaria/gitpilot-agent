@@ -4,365 +4,794 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GitPilot — DevOps Intelligence Agent</title>
+    <title>GitPilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <style>
-        * {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
+        :root {
+            --bg: #f9f9f8;
+            --surface: #ffffff;
+            --border: #e8e8e6;
+            --border-strong: #d4d4d0;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b6b6b;
+            --text-muted: #a3a3a3;
+            --accent: #2563eb;
+            --accent-light: #eff6ff;
+            --accent-hover: #1d4ed8;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --user-bubble: #1a1a1a;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        html,
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0d1117;
-            color: #e6edf3;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background: #161b22;
-            border-bottom: 1px solid #30363d;
-            padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        header .logo {
-            font-size: 22px;
-            font-weight: 700;
-            color: #58a6ff;
-        }
-
-        header .subtitle {
-            font-size: 13px;
-            color: #8b949e;
-        }
-
-        header .badge {
-            margin-left: auto;
-            background: #1f6feb;
-            color: white;
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-
-        .suggestions {
-            display: flex;
-            gap: 8px;
-            padding: 12px 24px;
-            background: #161b22;
-            border-bottom: 1px solid #30363d;
-            flex-wrap: wrap;
-        }
-
-        .suggestions span {
-            font-size: 11px;
-            color: #8b949e;
-            margin-right: 4px;
-        }
-
-        .suggestion-btn {
-            background: #21262d;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .suggestion-btn:hover {
-            background: #30363d;
-            border-color: #58a6ff;
-            color: #58a6ff;
-        }
-
-        #chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .message {
-            max-width: 780px;
-            width: 100%;
-        }
-
-        .message.user {
-            align-self: flex-end;
-        }
-
-        .message.assistant {
-            align-self: flex-start;
-        }
-
-        .message-bubble {
-            padding: 12px 16px;
-            border-radius: 10px;
+            height: 100%;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
             font-size: 14px;
             line-height: 1.6;
-            white-space: pre-wrap;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .user .message-bubble {
-            background: #1f6feb;
-            color: white;
-            border-bottom-right-radius: 3px;
+        .layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            height: 100vh;
         }
 
-        .assistant .message-bubble {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-bottom-left-radius: 3px;
-            color: #e6edf3;
+        /* SIDEBAR */
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
         }
 
-        .message-label {
-            font-size: 11px;
-            color: #8b949e;
-            margin-bottom: 4px;
-            padding: 0 4px;
+        .sidebar-logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
         }
 
-        .user .message-label {
-            text-align: right;
-        }
-
-        .thinking {
+        .logo-mark {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #8b949e;
-            font-size: 13px;
-            padding: 8px 0;
         }
 
-        .dot-flashing {
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--text-primary);
+            border-radius: 7px;
             display: flex;
-            gap: 4px;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
         }
 
-        .dot-flashing div {
+        .logo-text {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .sidebar-section {
+            padding: 0 12px;
+            margin-bottom: 24px;
+        }
+
+        .sidebar-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 0 8px;
+            margin-bottom: 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 8px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 400;
+            transition: all 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background: var(--bg);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .nav-icon {
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 20px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .status-dot {
+            display: inline-block;
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #58a6ff;
-            animation: dotFlash 1s infinite alternate;
+            background: var(--success);
+            margin-right: 6px;
         }
 
-        .dot-flashing div:nth-child(2) {
+        .status-text {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* MAIN */
+        .main {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .topbar-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 500;
+            font-family: 'DM Mono', monospace;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .clear-btn {
+            font-size: 12px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-muted);
+            background: none;
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .clear-btn:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        /* QUICK ACTIONS */
+        .quick-actions {
+            padding: 12px 24px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            flex-shrink: 0;
+        }
+
+        .qa-btn {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .qa-btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* CHAT */
+        #chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+        }
+
+        #chat::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #chat::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #chat::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 2px;
+        }
+
+        .msg {
+            display: flex;
+            gap: 12px;
+            max-width: 820px;
+        }
+
+        .msg.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .msg.assistant {
+            align-self: flex-start;
+        }
+
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .msg.assistant .avatar {
+            background: var(--text-primary);
+            color: white;
+        }
+
+        .msg.user .avatar {
+            background: var(--border);
+            color: var(--text-secondary);
+        }
+
+        .bubble {
+            padding: 11px 15px;
+            border-radius: var(--radius);
+            font-size: 13.5px;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            max-width: 680px;
+        }
+
+        .msg.assistant .bubble {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-top-left-radius: 4px;
+            box-shadow: var(--shadow);
+            color: var(--text-primary);
+        }
+
+        .msg.user .bubble {
+            background: var(--user-bubble);
+            color: white;
+            border-top-right-radius: 4px;
+        }
+
+        /* Markdown in bubbles */
+        .bubble h3 {
+            font-size: 13px;
+            font-weight: 600;
+            margin: 12px 0 6px;
+            color: var(--text-primary);
+        }
+
+        .bubble h3:first-child {
+            margin-top: 0;
+        }
+
+        .bubble ul {
+            padding-left: 16px;
+            margin: 4px 0;
+        }
+
+        .bubble li {
+            margin: 3px 0;
+        }
+
+        .bubble strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .bubble code {
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 1px 5px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        .msg.user .bubble code {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Tool call indicator */
+        .tool-call {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-family: 'DM Mono', monospace;
+            color: var(--text-muted);
+            padding: 4px 0;
+        }
+
+        .tool-call::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            flex-shrink: 0;
+        }
+
+        /* Thinking */
+        .thinking-wrap {
+            display: flex;
+            gap: 12px;
+            align-self: flex-start;
+        }
+
+        .thinking {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            border-top-left-radius: 4px;
+            padding: 11px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            box-shadow: var(--shadow);
+        }
+
+        .dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+
+        .dot:nth-child(2) {
             animation-delay: 0.2s;
         }
 
-        .dot-flashing div:nth-child(3) {
+        .dot:nth-child(3) {
             animation-delay: 0.4s;
         }
 
-        @keyframes dotFlash {
-            0% {
-                opacity: 0.2;
-            }
+        @keyframes pulse {
 
+            0%,
             100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+
+            50% {
                 opacity: 1;
+                transform: scale(1);
             }
         }
 
-        #input-area {
+        /* INPUT */
+        .input-area {
             padding: 16px 24px;
-            background: #161b22;
-            border-top: 1px solid #30363d;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .input-wrap {
             display: flex;
-            gap: 10px;
             align-items: flex-end;
+            gap: 8px;
+            background: var(--bg);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius);
+            padding: 10px 12px 10px 16px;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
 
-        #user-input {
+        .input-wrap:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+        }
+
+        #input {
             flex: 1;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            color: #e6edf3;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 14px;
-            resize: none;
-            min-height: 44px;
-            max-height: 120px;
+            background: none;
+            border: none;
             outline: none;
-            font-family: inherit;
-            transition: border-color 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13.5px;
+            color: var(--text-primary);
+            resize: none;
+            min-height: 22px;
+            max-height: 100px;
+            line-height: 1.5;
         }
 
-        #user-input:focus {
-            border-color: #58a6ff;
+        #input::placeholder {
+            color: var(--text-muted);
         }
 
-        #send-btn {
-            background: #238636;
+        #send {
+            background: var(--text-primary);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
             cursor: pointer;
-            height: 44px;
-            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+            font-size: 14px;
         }
 
-        #send-btn:hover {
-            background: #2ea043;
+        #send:hover {
+            background: #333;
         }
 
-        #send-btn:disabled {
-            background: #21262d;
-            color: #8b949e;
+        #send:disabled {
+            background: var(--border);
+            color: var(--text-muted);
             cursor: not-allowed;
         }
 
-        #clear-btn {
-            background: transparent;
-            border: 1px solid #30363d;
-            color: #8b949e;
-            padding: 10px 14px;
-            border-radius: 8px;
+        .input-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        /* Welcome state */
+        .welcome {
+            margin: auto;
+            text-align: center;
+            max-width: 440px;
+            padding: 40px 0;
+        }
+
+        .welcome-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--text-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin: 0 auto 16px;
+            color: white;
+        }
+
+        .welcome h2 {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.4px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .welcome p {
             font-size: 13px;
-            cursor: pointer;
-            height: 44px;
-            transition: all 0.2s;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
         }
 
-        #clear-btn:hover {
-            border-color: #f85149;
-            color: #f85149;
+        .welcome-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
         }
 
-        /* Markdown-like formatting */
-        .message-bubble strong {
-            color: #58a6ff;
-        }
-
-        .message-bubble code {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            padding: 1px 5px;
-            border-radius: 4px;
+        .welcome-pill {
+            font-family: 'DM Sans', sans-serif;
             font-size: 12px;
-            font-family: 'Consolas', monospace;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .welcome-pill:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        /* Fade in */
+        .msg {
+            animation: fadeUp 0.2s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 
 <body>
+    <div class="layout">
 
-    <header>
-        <div>
-            <div class="logo">⚡ GitPilot</div>
-            <div class="subtitle">DevOps Intelligence Agent · Powered by Gemini + GitLab</div>
-        </div>
-        <div class="badge">Gemini 2.5 Flash</div>
-    </header>
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-mark">
+                    <div class="logo-icon">⚡</div>
+                    <div>
+                        <div class="logo-text">GitPilot</div>
+                        <div class="logo-sub">DevOps Agent</div>
+                    </div>
+                </div>
+            </div>
 
-    <div class="suggestions">
-        <span>Try:</span>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">What projects do I have?</button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">Prioritize issues in demo-app</button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">Summarize demo-app for my standup</button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">What are the open merge requests?</button>
-        <button class="suggestion-btn" onclick="sendSuggestion(this)">Are there any failed pipelines?</button>
-    </div>
+            <div class="sidebar-section">
+                <div class="sidebar-label">Actions</div>
+                <button class="nav-item active" onclick="sendQuick('What projects do I have?')">
+                    <span class="nav-icon">◫</span> Projects
+                </button>
+                <button class="nav-item" onclick="sendQuick('Prioritize issues in demo-app')">
+                    <span class="nav-icon">↑</span> Prioritize Issues
+                </button>
+                <button class="nav-item" onclick="sendQuick('Are there any failed pipelines?')">
+                    <span class="nav-icon">⚠</span> Pipeline Status
+                </button>
+                <button class="nav-item" onclick="sendQuick('What are the open merge requests?')">
+                    <span class="nav-icon">↗</span> Merge Requests
+                </button>
+                <button class="nav-item" onclick="sendQuick('Summarize demo-app for my standup')">
+                    <span class="nav-icon">◉</span> Standup Summary
+                </button>
+                <button class="nav-item" onclick="sendQuick('Generate a sprint retrospective for demo-app')">
+                    <span class="nav-icon">↺</span> Retrospective
+                </button>
+                <button class="nav-item"
+                    onclick="sendQuick('Add a triage comment to issue #1 in demo-app saying it is critical and needs immediate attention')">
+                    <span class="nav-icon">✎</span> Triage Issue
+                </button>
+                <button class="nav-item"
+                    onclick="sendQuick('Mark issue #4 in demo-app as maintenance and add a comment saying dependencies should be updated this sprint')">
+                    <span class="nav-icon">⊕</span> Label Issue
+                </button>
+            </div>
 
-    <div id="chat-container">
-        <div class="message assistant">
-            <div class="message-label">GitPilot</div>
-            <div class="message-bubble">👋 Hi! I'm GitPilot, your DevOps intelligence agent.
+            <div class="sidebar-section">
+                <div class="sidebar-label">Advanced</div>
+                <button class="nav-item"
+                    onclick="sendQuick('Fetch and diagnose the failure logs for the most recent failed pipeline in demo-app')">
+                    <span class="nav-icon">🔍</span> Diagnose Failure
+                </button>
+                <button class="nav-item"
+                    onclick="sendQuick('Generate an MR description for the open merge request in demo-app')">
+                    <span class="nav-icon">✎</span> Generate MR Desc
+                </button>
+                <button class="nav-item"
+                    onclick="sendQuick('Diagnose the most recent failed pipeline in demo-app and automatically file a bug report issue for it')">
+                    <span class="nav-icon">⚡</span> Auto-file Bug
+                </button>
+            </div>
 
-                I can help you with:
-                - 📋 Listing and prioritizing your GitLab issues
-                - 🔍 Analyzing CI/CD pipeline failures
-                - 📊 Generating project summaries for standups
-                - 🔀 Reviewing open merge requests
+            <div class="sidebar-footer">
+                <span class="status-dot"></span>
+                <span class="status-text">Gemini 2.5 Flash · Vertex AI</span>
+            </div>
+        </aside>
 
-                What would you like to tackle first?</div>
-        </div>
-    </div>
+        <!-- MAIN -->
+        <main class="main">
+            <div class="topbar">
+                <span class="topbar-title">Chat</span>
+                <div class="topbar-right">
+                    <span class="badge">gitlab track</span>
+                    <button class="clear-btn" onclick="clearChat()">Clear</button>
+                </div>
+            </div>
 
-    <div id="input-area">
-        <textarea id="user-input" placeholder="Ask GitPilot anything about your GitLab projects..." rows="1"></textarea>
-        <button id="clear-btn" onclick="clearChat()" title="Clear conversation">↺ Clear</button>
-        <button id="send-btn" onclick="sendMessage()">Send ↑</button>
+            <div id="chat">
+                <div class="welcome" id="welcome">
+                    <div class="welcome-icon">⚡</div>
+                    <h2>What needs your attention?</h2>
+                    <p>GitPilot connects to your GitLab workspace and reasons over real data — issues, pipelines, merge
+                        requests — to help you move faster.</p>
+                    <div class="welcome-pills">
+                        <button class="welcome-pill" onclick="sendQuick('Prioritize issues in demo-app')">Prioritize
+                            issues</button>
+                        <button class="welcome-pill" onclick="sendQuick('Are there any failed pipelines?')">Check
+                            pipelines</button>
+                        <button class="welcome-pill" onclick="sendQuick('Summarize demo-app for my standup')">Standup
+                            summary</button>
+                        <button class="welcome-pill"
+                            onclick="sendQuick('Generate a sprint retrospective for demo-app')">Sprint retro</button>
+                        <button class="welcome-pill"
+                            onclick="sendQuick('Fetch and diagnose the failure logs for the most recent failed pipeline in demo-app')">Diagnose
+                            failure</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrap">
+                    <textarea id="input" placeholder="Ask anything about your GitLab projects…" rows="1"></textarea>
+                    <button id="send" onclick="send()">↑</button>
+                </div>
+                <div class="input-hint">Enter to send · Shift+Enter for new line</div>
+            </div>
+        </main>
     </div>
 
     <script>
-        const SESSION_ID = 'session_' + Math.random().toString(36).slice(2);
-        const chatContainer = document.getElementById('chat-container');
-        const input = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
+        const SESSION = 'gp_' + Math.random().toString(36).slice(2);
+        const chat = document.getElementById('chat');
+        const input = document.getElementById('input');
+        const sendBtn = document.getElementById('send');
+        let hasMessages = false;
 
-        // Auto-resize textarea
         input.addEventListener('input', () => {
             input.style.height = 'auto';
-            input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+            input.style.height = Math.min(input.scrollHeight, 100) + 'px';
         });
 
-        // Send on Enter (Shift+Enter for newline)
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+        });
+
+        function removeWelcome() {
+            if (!hasMessages) {
+                document.getElementById('welcome')?.remove();
+                hasMessages = true;
             }
-        });
+        }
 
-        function appendMessage(role, text) {
-            const div = document.createElement('div');
-            div.className = `message ${role}`;
-            const label = role === 'user' ? 'You' : 'GitPilot';
-            // Basic markdown: **bold** and `code`
-            const formatted = text
+        function formatText(text) {
+            return text
+                .replace(/### (.*)/g, '<h3>$1</h3>')
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/`(.*?)`/g, '<code>$1</code>');
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/^\* (.*)/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+        }
+
+        function addMsg(role, text) {
+            removeWelcome();
+            const div = document.createElement('div');
+            div.className = `msg ${role}`;
+            const icon = role === 'assistant' ? '⚡' : '↑';
             div.innerHTML = `
-      <div class="message-label">${label}</div>
-      <div class="message-bubble">${formatted}</div>
+      <div class="avatar">${icon}</div>
+      <div class="bubble">${role === 'assistant' ? formatText(text) : text}</div>
     `;
-            chatContainer.appendChild(div);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
             return div;
         }
 
         function showThinking() {
+            removeWelcome();
             const div = document.createElement('div');
-            div.className = 'message assistant';
+            div.className = 'thinking-wrap';
             div.id = 'thinking';
             div.innerHTML = `
-      <div class="message-label">GitPilot</div>
+      <div class="avatar" style="background:#1a1a1a;color:white;">⚡</div>
       <div class="thinking">
-        <div class="dot-flashing"><div></div><div></div><div></div></div>
-        Thinking...
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        Thinking…
       </div>
     `;
-            chatContainer.appendChild(div);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
         }
 
-        function removeThinking() {
-            document.getElementById('thinking')?.remove();
-        }
-
-        async function sendMessage() {
+        async function send() {
             const text = input.value.trim();
             if (!text || sendBtn.disabled) return;
-
-            appendMessage('user', text);
+            addMsg('user', text);
             input.value = '';
             input.style.height = 'auto';
             sendBtn.disabled = true;
@@ -372,37 +801,42 @@
                 const res = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, session_id: SESSION_ID })
+                    body: JSON.stringify({ message: text, session_id: SESSION })
                 });
                 const data = await res.json();
-                removeThinking();
-                if (res.ok) {
-                    appendMessage('assistant', data.response);
-                } else {
-                    appendMessage('assistant', '⚠️ Error: ' + (data.detail || 'Unknown error'));
-                }
-            } catch (err) {
-                removeThinking();
-                appendMessage('assistant', '⚠️ Could not reach the server. Is it running?');
+                document.getElementById('thinking')?.remove();
+                addMsg('assistant', res.ok ? data.response : '⚠ ' + (data.detail || 'Unknown error'));
+            } catch {
+                document.getElementById('thinking')?.remove();
+                addMsg('assistant', '⚠ Could not reach the server. It may be cold-starting — please try again in 15 seconds.');
             } finally {
                 sendBtn.disabled = false;
                 input.focus();
             }
         }
 
-        function sendSuggestion(btn) {
-            input.value = btn.textContent;
-            sendMessage();
+        function sendQuick(text) {
+            input.value = text;
+            send();
         }
 
         async function clearChat() {
-            await fetch(`/chat/${SESSION_ID}`, { method: 'DELETE' });
-            chatContainer.innerHTML = `
-      <div class="message assistant">
-        <div class="message-label">GitPilot</div>
-        <div class="message-bubble">Chat cleared. What would you like to work on?</div>
+            await fetch(`/chat/${SESSION}`, { method: 'DELETE' });
+            chat.innerHTML = `
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">⚡</div>
+        <h2>What needs your attention?</h2>
+        <p>GitPilot connects to your GitLab workspace and reasons over real data — issues, pipelines, merge requests — to help you move faster.</p>
+        <div class="welcome-pills">
+          <button class="welcome-pill" onclick="sendQuick('Prioritize issues in demo-app')">Prioritize issues</button>
+          <button class="welcome-pill" onclick="sendQuick('Are there any failed pipelines?')">Check pipelines</button>
+          <button class="welcome-pill" onclick="sendQuick('Summarize demo-app for my standup')">Standup summary</button>
+          <button class="welcome-pill" onclick="sendQuick('Generate a sprint retrospective for demo-app')">Sprint retro</button>
+          <button class="welcome-pill" onclick="sendQuick('Fetch and diagnose the failure logs for the most recent failed pipeline in demo-app')">Diagnose failure</button>
+        </div>
       </div>
     `;
+            hasMessages = false;
         }
     </script>
 </body>
