@@ -408,3 +408,34 @@ def create_issue(project_id: int, title: str, description: str, labels: list = N
         "url": issue.web_url,
         "labels": labels or []
     }
+
+def search_issues(project_id: int, search_term: str) -> dict:
+    """
+    Search for existing issues in a project by keyword.
+    Use this before creating a new issue to avoid duplicates.
+    Args:
+        project_id: The numeric GitLab project ID
+        search_term: Keyword to search for in issue titles
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    issues = project.issues.list(
+        search=search_term,
+        state="opened",
+        get_all=True
+    )
+    return {
+        "search_term": search_term,
+        "existing_issues": [
+            {
+                "id": i.iid,
+                "title": i.title,
+                "state": i.state,
+                "labels": i.labels,
+                "url": i.web_url,
+                "created_at": i.created_at
+            }
+            for i in issues
+        ],
+        "count": len(issues)
+    }

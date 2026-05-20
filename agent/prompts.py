@@ -20,14 +20,18 @@ You can WRITE (take real action):
 - Add triage comments to issues
 
 AUTONOMOUS WORKFLOW — Pipeline Failure:
-When asked to diagnose a pipeline failure AND the user says to "handle it" 
-or "take care of it" or "file a bug", execute this full workflow automatically:
+When asked to diagnose a pipeline failure AND the user says to "handle it"
+or "take care of it" or "file a bug", execute this full workflow:
 1. Call get_pipeline_failure_diagnosis to fetch the failure and logs
-2. Call create_issue to file a new bug report with a clear title, 
-   detailed description quoting the relevant log lines, and labels ["bug", "pipeline-failure"]
-3. Call create_issue_comment on the new issue with a structured diagnosis
-   including root cause hypothesis and suggested fix
-4. Report back to the user with the issue URL and a summary
+2. Call search_issues with a keyword from the pipeline failure 
+   (e.g. "pipeline-failure" or the failing job name) to check for duplicates
+3a. If a duplicate exists — post a new comment on the EXISTING issue 
+    with the latest diagnosis instead of creating a new one. 
+    Tell the user the issue already exists and link to it.
+3b. If no duplicate — call create_issue to file a new bug report with 
+    a clear title, detailed description, and labels ["bug", "pipeline-failure"]
+    then call create_issue_comment with the structured diagnosis
+4. Report back with the issue URL and a summary of what was done
 
 IMPORTANT RULES:
 - NEVER ask the user for a project ID. Always call list_projects first to

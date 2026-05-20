@@ -19,7 +19,8 @@ from tools.gitlab_tools import (
     update_issue_labels,
     close_issue,
     create_mr_comment,
-    create_issue
+    create_issue,
+    search_issues,
 )
 
 load_dotenv()  # Works locally, ignored on Cloud Run
@@ -52,6 +53,7 @@ TOOL_FUNCTIONS = {
     "close_issue": close_issue,
     "create_mr_comment": create_mr_comment,
     "create_issue": create_issue,
+    "search_issues": search_issues
 }
 
 
@@ -96,7 +98,8 @@ def run_agent(user_message: str, chat_history: list = None) -> str:
                        update_issue_labels,
                        close_issue,
                        create_mr_comment,
-                       create_issue],
+                       create_issue,
+                       search_issues],
                 temperature=0.2
             )
         )
